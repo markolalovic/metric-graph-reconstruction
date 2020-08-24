@@ -8,9 +8,7 @@ So far only the implementation of Aanjaneya's metric graph reconstruction algori
 
 In Figure 1 is an example of metric graph reconstruction of the drawing of number 7.
 
-<div style="text-align:center">
 <img src="figures/reconstruction.png" alt="Reconstruction" width="300">
-</div>
 
 The input to the algorithm is the sample of points, shown in blue and red. In this example, this set of points represents the number 7 with added Gaussian noise. The reconstruction is in the form of a graph shown in black. In this example the reconstruction captures perfectly all the topological features: the relationship between the edges and vertices, the number of branching points and the degree of each node.
 
@@ -19,9 +17,7 @@ The input to the algorithm is the sample of points, shown in blue and red. In th
 
 The main idea is the construction of a Rips-Vietoris graph of parameter `delta` around each sample point whose vertices are in the shell between radius `r` and `r + delta`, shown in red in Figure 2.
 
-<div style="text-align:center">
 <img src="figures/labeling_step.png" alt="Labeling step" width="300">
-</div>
 
 The center sample point is then labeled as an **edge point** if there are 2 connected components in the Rips-Vietoris graph and **vertex point** otherwise. Points that were labeled as vertex points are shown in red and points that were labeled as vertex points are shown in blue in Figure 1.
 
@@ -33,9 +29,7 @@ draw_labeling(point_list, delta, r, p11, step=13)
 
 The reconstruction can be incorrect if the sample is not dense enough or when choosing the wrong values for input parameters `delta`, `r`, `p11`. An example of incorrect reconstruction is in the figure below, where the right edge is missing is in Figure 3.
 
-<div style="text-align:center">
 <img src="figures/incorrect_reconstruction.png" alt="Incorrect reconstruction" width="300">
-</div>
 
 See [1] for the explanation of how dense a sample has to be in order to guarantee a correct reconstruction of a metric graph.
 
