@@ -27,7 +27,7 @@ For more see the notebook in source directory. To see the labeling steps (e.g. 1
 draw_labeling(point_list, delta, r, p11, step=13)
 ```
 
-The reconstruction can be incorrect if the sample is not dense enough or when choosing the wrong values for input parameters `delta`, `r`, `p11`. An example of incorrect reconstruction is in the figure below, where the right edge is missing is in Figure 3.
+The reconstruction can be incorrect if the sample is not dense enough or when choosing the wrong values for input parameters `delta`, `r`, `p11`. An example of incorrect reconstruction is in Figure 3 below, where the right edge is missing from the reconstructed graph in black.
 
 <img src="figures/incorrect_reconstruction.png" alt="Incorrect reconstruction" width="300">
 
