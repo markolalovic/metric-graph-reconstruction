@@ -1,7 +1,11 @@
-# metric-graph-reconstruction
-The problem of reconstructing the topology of a metric graph for representing intersecting or branching filamentary paths embedded in 2 or higher dimensional spaces.
+# Metric Graph Reconstruction
 
-This repository contains the source code for the implementation of Aanjaneya's metric graph reconstruction algorithm for 2 dimensional Euclidean space.
+**Progress on metric graph reconstruction from noisy data**
+
+## Introduction 
+The problem is of reconstructing the topology of a metric graph for representing intersecting or branching filamentary paths embedded in 2 or higher dimensional spaces.
+
+This repository currently contains only the source code for the implementation of Aanjaneya's metric graph reconstruction algorithm for 2 dimensional Euclidean space.
 
 ## Toy example
 
