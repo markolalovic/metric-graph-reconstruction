@@ -2,9 +2,7 @@
 
 **Progress on metric graph reconstruction from noisy data**
 
-<p align="center">
-  <img src="figures/earthquake.png" alt="Reconstruction from earthquake data" width="550">
-</p>
+<img src="figures/earthquake.png" alt="Reconstruction from earthquake data" width="600">
 
 ## Introduction
 The problem is of reconstructing the topology of a metric graph for representing intersecting or branching filamentary paths embedded in 2 or higher dimensional spaces.
