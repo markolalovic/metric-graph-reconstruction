@@ -1,11 +1,10 @@
 # Metric Graph Reconstruction
 
-**Progress on metric graph reconstruction from noisy data**
+**Reconstructing the topology of a metric graph for representing intersecting or branching filamentary paths embedded in 2 or higher dimensional spaces**
 
-<img src="figures/earthquake.png" alt="Reconstruction from earthquake data" width="600">
+<img src="figures/earthquake.png" alt="Reconstruction from earthquake data" width="630">
 
 ## Introduction
-The problem is of reconstructing the topology of a metric graph for representing intersecting or branching filamentary paths embedded in 2 or higher dimensional spaces.
 
 This repository currently contains only the source code for the implementation of Aanjaneya's metric graph reconstruction algorithm for 2 dimensional Euclidean space.
 
