@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" metric_graph_reconstruction.py: Reconstructing the topology of a metric
-graph that represents intersecting or branching filamentary paths embedded
-in 2 or higher dimensional space.
+""" metric_graph_reconstruction_2d.py: Implementation of algorithm for
+reconstructing the topology of a metric graph that represents intersecting
+or branching filamentary paths embedded in 2 dimensional space.
 
 Author: Marko Lalovic <marko.lalovic@yahoo.com>
 License: MIT License
@@ -19,7 +19,6 @@ import networkx as nx
 CANVAS_WIDTH = 10
 CANVAS_HEIGHT = 10
 M = 28
-# plt.rcParams.update({'font.size': 5})
 
 class EmbeddedGraph:
     def __init__(self, nodes, edges):
@@ -50,8 +49,6 @@ class EmbeddedGraph:
         ''' Number of connected components of EmbeddedGraph.'''
         return len(self.components)
 
-    # TODO: compute the components
-    # TODO: compute centers of components when defining graph on components
     @property
     def components(self):
         ''' Computes connected components of EmbeddedGraph'''
@@ -495,22 +492,25 @@ def draw_edge(canvas, p1, p2, color='blue', **kwargs):
 
 if __name__ == "__main__":
     ''' Testing the reconstruction algorithm.'''
+
+    np.random.seed(2)
+
     # draw number 7
     diagonal = [Point(i, i) for i in range(1, M, 1)]
     top = [Point(i, M - 1) for i in range(1, M, 1)]
     middle = [Point(i, 14) for i in range(7, 20, 1)]
-    points_7 = diagonal + top + middle
+    points = diagonal + top + middle
 
     # add noise
-    points_7_noise = []
+    points_noise = []
     sigma = 0.1
-    for point in points_7:
+    for point in points:
         x = point.x + list(np.random.normal(0, sigma, 1))[0]
         y = point.y + list(np.random.normal(0, sigma, 1))[0]
-        points_7_noise.append(Point(x, y))
+        points_noise.append(Point(x, y))
 
     # inputs to the algorithm
-    point_list = PointList(points_7_noise)
+    point_list = PointList(points_noise)
     delta, r, p11 = 2, 1.5, 0.9
 
     # draw the steps of the algorithm
