@@ -23,7 +23,7 @@ The main idea is the construction of a Rips-Vietoris graph of parameter `delta` 
 
 <img src="figures/labeling_step.png" alt="Labeling step" width="300">
 
-The center sample point is then labeled as an **edge point** if there are 2 connected components in the Rips-Vietoris graph and **vertex point** otherwise. Points that were labeled as vertex points are shown in red and points that were labeled as vertex points are shown in blue in Figure 1.
+The center sample point is then labeled as an **edge point** if there are 2 connected components in the Rips-Vietoris graph and **vertex point** otherwise. Points that were labeled as vertex points are shown in red and points that were labeled as edge points are shown in blue in Figure 1.
 
 For more see the notebook in source directory. To see the labeling steps (e.g. 13) of the algorithm, we can call:
 
