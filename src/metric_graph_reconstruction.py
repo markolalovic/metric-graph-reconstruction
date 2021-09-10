@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-""" metric_graph_reconstruction_2d.py: Implementation of algorithm for
+""" metric_graph_reconstruction.py: Implementation of algorithm for
 reconstructing the topology of a metric graph that represents intersecting
 or branching filamentary paths embedded in 2 dimensional space.
 
@@ -9,22 +9,22 @@ License: MIT License
 """
 
 import numpy as np
+import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import math
 import copy
-import networkx as nx
-
 
 CANVAS_WIDTH = 10
 CANVAS_HEIGHT = 10
-M = 28
+MAX = 28 # max x,y coordinate
+MIN = -2 # min x,y coordinate
 
 class EmbeddedGraph:
     def __init__(self, nodes, edges):
         ''' Graph with points embedded in the plane.'''
-        self.nodes = PointList(nodes)
-        self.edges = [PointList(edge) for edge in edges]
+        self.nodes = PointCloud(nodes)
+        self.edges = [PointCloud(edge) for edge in edges]
 
     def __str__(self):
         points = [str(point) for point in self.nodes.points]
@@ -61,7 +61,7 @@ class EmbeddedGraph:
             point_of[i] = self.nodes.points[i]
 
         for i, cmpt_G in cmpts_G.items():
-            cmpts_emb_G[i] = PointList( [point_of[j] for j in cmpt_G] )
+            cmpts_emb_G[i] = PointCloud( [point_of[j] for j in cmpt_G] )
 
         return cmpts_emb_G
 
@@ -79,22 +79,22 @@ class Graph:
 
     @property
     def n(self):
-        ''' Number of nodes in Graph.'''
+        ''' Returns the number of nodes. '''
         return len(self.nodes)
 
     @property
     def m(self):
-        ''' Number of edges in Graph.'''
+        ''' Returns the number of edges. '''
         return len(self.edges)
 
     @property
     def k(self):
-        ''' Number of connected components of Graph.'''
+        ''' Returns the number of connected components. '''
         return len(self.components)
 
     @property
     def components(self):
-        ''' Computes connected components of Graph'''
+        ''' Returns the connected components. '''
         cmpts = {}
         k = 0
         unvisited = copy.copy(self.nodes)
@@ -112,6 +112,7 @@ class Graph:
         return "nodes: {}\nedges: {}".format(str(self.nodes), str(self.edges))
 
     def draw(self):
+        ''' Draws the graph. '''
         graph_G = nx.Graph()
         graph_G.add_nodes_from(self.nodes)
         graph_G.add_edges_from(self.edges)
@@ -121,64 +122,6 @@ class Graph:
                 node_color='red', with_labels=True)
         plt.show()
 
-def nhbs(v, graph_G):
-    N = []
-    for edge in graph_G.edges:
-        u1, u2 = edge
-        if u1 == v:
-            N.append(u2)
-        elif u2 == v:
-            N.append(u1)
-    return N
-
-def component(v, nodes, edges):
-    ''' Wrapper of comp.'''
-    G = Graph(nodes, edges)
-    return comp(v, G, [v]) # T=[v] at the start
-
-def comp(v, graph_G, T):
-    N = list(set(nhbs(v, graph_G)) - set(T))
-    if N == []:
-        return [v]
-    else:
-        T += N # expand the tree
-        for n in N:
-            T += comp(n, graph_G, T) # expand the tree (BFS)
-    return list(set(T))
-# tests
-# graph_G = nx.petersen_graph()
-# graph_G = Graph(list(graph_G.nodes()), list(graph_G.edges()))
-# graph_G.components[0] == graph_G.nodes # True
-# graph_G = Graph(list(range(10)), [])
-# len(graph_G.components) == 10 # True
-
-def graph(emb_G):
-    ''' Translate from EmbeddedGraph to Graph.'''
-
-    point_of = {}
-    for i in range(emb_G.n):
-        point_of[i] = emb_G.nodes.points[i]
-
-    number_of = {}
-    for i in range(emb_G.n):
-        number_of[emb_G.nodes.points[i]] = i
-
-    nodes = list(point_of.keys())
-    edges = []
-    for i in range(emb_G.n):
-        for j in range(i + 1, emb_G.n):
-            # test if there is an edge between Points v1 and v2
-            v1 = emb_G.nodes.points[i]
-            v2 = emb_G.nodes.points[j]
-
-            for edge in emb_G.edges:
-                u1 = edge.points[0]
-                u2 = edge.points[1]
-                if v1.equal(u1) and v2.equal(u2) or \
-                   v1.equal(u2) and v2.equal(u1):
-                    edges.append( (number_of[v1], number_of[v2]) )
-
-    return Graph(nodes, edges)
 
 class Point:
     ''' Class Point for storing coordinates and label of a point.
@@ -204,9 +147,9 @@ class Point:
     def equal(self, p):
         return (self.x == p.x) and (self.y == p.y)
 
-class PointList:
+class PointCloud:
     def __init__(self, points):
-        ''' PointList Class to hold a list of Point objects.'''
+        ''' PointCloud Class to hold a list of Point objects.'''
         if points == [] or isinstance(points[0], Point):
             self.points = points
         else:
@@ -254,25 +197,26 @@ class PointList:
         self.points.append(p)
 
     def difference(self, pl):
-        difference = PointList([])
+        difference = PointCloud([])
         for pt in self.points:
             if not pl.contains(pt):
                 difference.append(pt)
         return difference
 
-    def distance(self, point_list):
-        ''' Computes minimum distance from self to another point list.'''
+    def distance(self, point_cloud):
+        ''' Computes minimum distance from self to another point cloud.'''
         distances = []
         for p1 in self.points:
-            for p2 in point_list.points:
+            for p2 in point_cloud.points:
                 distances.append(distance(p1, p2))
 
         return np.min(np.array(distances))
 
+
 class Canvas:
     """ Class Canvas on which we draw the graphics."""
     def __init__(self, title, xlabel='X', ylabel='Y',
-                 p1=Point(-2, -2), p2=Point(M, M)):
+                 p1=Point(MIN, MIN), p2=Point(MAX, MAX)):
         self.fig = plt.figure()
         self.fig.set_size_inches(CANVAS_WIDTH, CANVAS_HEIGHT)
         self.ax = self.fig.add_subplot(111, aspect='equal')
@@ -312,8 +256,101 @@ def draw_points(canvas, points):
             color = 'green'
         draw_point(canvas, point, color=color)
 
+def draw_graph(canvas, emb_G, color='black'):
+    for pt in emb_G.nodes.points:
+        draw_point(canvas, pt, color=color)
+
+    for edge in emb_G.edges:
+        draw_edge(canvas, edge.points[0], edge.points[1], color=color)
+
+    plt.show()
+
+def draw_ball(canvas, pt, radius=5, color='blue', **kwargs):
+    """ Draws a ball."""
+    # draw_point(canvas, pt, radius=0.2, color=color)
+    circle = patches.Circle((pt.x, pt.y),
+                        radius,
+                        fill=False,
+                        edgecolor=color,
+                        linestyle='dotted',
+                        linewidth='2.2',
+                        **kwargs)
+    canvas.ax.add_patch(circle)
+
+def draw_edge(canvas, p1, p2, color='blue', **kwargs):
+    """ Draws a line segment between points p1 and p2."""
+    line = patches.FancyArrow(p1.x, p1.y,
+                              p2.x - p1.x,
+                              p2.y - p1.y,
+                              color=color,
+                              linewidth='3.3',
+                              **kwargs)
+    canvas.ax.add_patch(line)
+
+def nhbs(v, graph_G):
+    ''' Returns neighbors of v in graph G. '''
+    neighbors = []
+    for edge in graph_G.edges:
+        u1, u2 = edge
+        if u1 == v:
+            neighbors.append(u2)
+        elif u2 == v:
+            neighbors.append(u1)
+    return neighbors
+
+def component(v, nodes, edges):
+    ''' Wrapper of comp.'''
+    G = Graph(nodes, edges)
+    return comp(v, G, [v]) # T=[v] at the start
+
+def comp(v, graph_G, T):
+    N = list(set(nhbs(v, graph_G)) - set(T))
+    if N == []:
+        return [v]
+    else:
+        T += N # expand the tree
+        for n in N:
+            T += comp(n, graph_G, T) # expand the tree (BFS)
+    return list(set(T))
+# tests
+# graph_G = nx.petersen_graph()
+# graph_G = Graph(list(graph_G.nodes()), list(graph_G.edges()))
+# graph_G.components[0] == graph_G.nodes # True
+# graph_G = Graph(list(range(10)), [])
+# len(graph_G.components) == 10 # True
+
+
+def graph(emb_G):
+    ''' Transform from EmbeddedGraph to Graph.'''
+
+    point_of = {}
+    for i in range(emb_G.n):
+        point_of[i] = emb_G.nodes.points[i]
+
+    number_of = {}
+    for i in range(emb_G.n):
+        number_of[emb_G.nodes.points[i]] = i
+
+    nodes = list(point_of.keys())
+    edges = []
+    for i in range(emb_G.n):
+        for j in range(i + 1, emb_G.n):
+            # test if there is an edge between Points v1 and v2
+            v1 = emb_G.nodes.points[i]
+            v2 = emb_G.nodes.points[j]
+
+            for edge in emb_G.edges:
+                u1 = edge.points[0]
+                u2 = edge.points[1]
+                if v1.equal(u1) and v2.equal(u2) or \
+                   v1.equal(u2) and v2.equal(u1):
+                    edges.append( (number_of[v1], number_of[v2]) )
+
+    return Graph(nodes, edges)
+
 def distance(p1, p2):
     ''' Euclidean distance between p1, p2.'''
+    # TODO: generalize if p \in R^3
     return math.hypot(p1.x - p2.x, p1.y - p2.y)
 
 def get_shell_points(points, center, r, delta):
@@ -352,11 +389,11 @@ def rips_vietoris_graph(delta, points):
 
     return EmbeddedGraph(nodes, edges)
 
-def reconstruct(point_list, delta=3, r=2, p11=1.5, show=False):
+def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
     ''' Implementation of Aanjaneya's metric graph reconstruction algorithm.'''
     ## label the points as edge or vertex points
-    for center in point_list.points:
-        shell_points = get_shell_points(point_list.points, center, r, delta)
+    for center in point_cloud.points:
+        shell_points = get_shell_points(point_cloud.points, center, r, delta)
         rips_embedded = rips_vietoris_graph(delta, shell_points)
 
         if rips_embedded.k == 2:
@@ -365,26 +402,25 @@ def reconstruct(point_list, delta=3, r=2, p11=1.5, show=False):
             center.label = 'V'
     if show:
         canvas = Canvas('After labeling')
-        draw_points(canvas, point_list.points)
+        draw_points(canvas, point_cloud.points)
 
     # re-label all the points withing distance p11 from vertex points as vertices
-    for center in point_list.vertex_points:
-        ball_points = get_ball_points(point_list.edge_points, center, p11)
+    for center in point_cloud.vertex_points:
+        ball_points = get_ball_points(point_cloud.edge_points, center, p11)
         for ball_point in ball_points:
             ball_point.label = 'V'
     if show:
         canvas = Canvas('After re-labeling')
-        draw_points(canvas, point_list.points)
+        draw_points(canvas, point_cloud.points)
 
     # reconstruct the graph structure
     # compute the connected components of Rips-Vietoris graphs:
     # R_delta(vertex_points), R_delta(edge_points)
-    rips_V = rips_vietoris_graph(delta, point_list.vertex_points)
-    rips_E = rips_vietoris_graph(delta, point_list.edge_points)
+    rips_V = rips_vietoris_graph(delta, point_cloud.vertex_points)
+    rips_E = rips_vietoris_graph(delta, point_cloud.edge_points)
     cmpts_V = rips_V.components
     cmpts_E = rips_E.components
 
-    # DEBUG:
     nodes_emb_E = []
     for i, cmpt_E in cmpts_E.items():
         nodes_emb_E.append(cmpt_E.center)
@@ -406,37 +442,37 @@ def reconstruct(point_list, delta=3, r=2, p11=1.5, show=False):
     emb_G = EmbeddedGraph(nodes_emb_G, edges_emb_G)
     if show:
         canvas = Canvas('Result')
-        draw_points(canvas, point_list.points)
+        draw_points(canvas, point_cloud.points)
         draw_graph(canvas, emb_G, color='red')
         draw_graph(canvas, emb_E, color='black')
         print(emb_E)
 
     return emb_G
 
-def draw_labeling(point_list, delta=3, r=2, p11=1.5, step=0):
+def draw_labeling(point_cloud, delta=3, r=2, p11=1.5, step=0):
     ''' Draw the labeling step of the algorithm.'''
 
     canvas = Canvas('Labeling points as edge or vertex points')
-    draw_points(canvas, point_list.points)
+    draw_points(canvas, point_cloud.points)
 
     if step == 0:
-        step = int(np.floor(len(point_list.points)/4)) - 2
-    center = point_list.points[step]
+        step = int(np.floor(len(point_cloud.points)/4)) - 2
+    center = point_cloud.points[step]
 
     draw_ball(canvas, center, r, 'black')
     draw_ball(canvas, center, r + delta, color='black')
 
-    shell_points = get_shell_points(point_list.points, center, r, delta)
+    shell_points = get_shell_points(point_cloud.points, center, r, delta)
     rips_embedded = rips_vietoris_graph(delta, shell_points)
 
     draw_graph(canvas, rips_embedded, color='red')
 
     plt.show()
 
-def draw_re_labeling(point_list, delta=3, r=2, p11=1.5):
+def draw_re_labeling(point_cloud, delta=3, r=2, p11=1.5):
     # label points as edge or vertex
-    for center in point_list.points:
-        shell_points = get_shell_points(point_list.points, center, r, delta)
+    for center in point_cloud.points:
+        shell_points = get_shell_points(point_cloud.points, center, r, delta)
         rips_embedded = rips_vietoris_graph(delta, shell_points)
 
         if rips_embedded.k == 2:
@@ -445,79 +481,15 @@ def draw_re_labeling(point_list, delta=3, r=2, p11=1.5):
             center.label = 'V'
 
     canvas = Canvas('Re-labeling points as vertex points')
-    draw_points(canvas, point_list.points)
+    draw_points(canvas, point_cloud.points)
 
-    i = int(np.floor(len(point_list.points)/4)) - 2
-    center = point_list.points[i]
+    i = int(np.floor(len(point_cloud.points)/4)) - 2
+    center = point_cloud.points[i]
 
     draw_ball(canvas, center, radius=p11, color='black')
 
-    ball_points = get_ball_points(point_list.edge_points, center, p11)
+    ball_points = get_ball_points(point_cloud.edge_points, center, p11)
     for ball_point in ball_points:
         draw_point(canvas, ball_point, color='green')
 
     plt.show()
-
-def draw_graph(canvas, emb_G, color='black'):
-    for pt in emb_G.nodes.points:
-        draw_point(canvas, pt, color=color)
-
-    for edge in emb_G.edges:
-        draw_edge(canvas, edge.points[0], edge.points[1], color=color)
-
-    plt.show()
-
-def draw_ball(canvas, pt, radius=5, color='blue', **kwargs):
-    """ Draws a ball."""
-    # draw_point(canvas, pt, radius=0.2, color=color)
-    circle = patches.Circle((pt.x, pt.y),
-                        radius,
-                        fill=False,
-                        edgecolor=color,
-                        linestyle='dotted',
-                        linewidth='2.2',
-                        **kwargs)
-    canvas.ax.add_patch(circle)
-
-def draw_edge(canvas, p1, p2, color='blue', **kwargs):
-    """ Draws a line segment between points p1 and p2."""
-    line = patches.FancyArrow(p1.x, p1.y,
-                              p2.x - p1.x,
-                              p2.y - p1.y,
-                              color=color,
-                              linewidth='3.3',
-                              **kwargs)
-    canvas.ax.add_patch(line)
-
-
-if __name__ == "__main__":
-    ''' Testing the reconstruction algorithm.'''
-
-    np.random.seed(2)
-
-    # draw number 7
-    diagonal = [Point(i, i) for i in range(1, M, 1)]
-    top = [Point(i, M - 1) for i in range(1, M, 1)]
-    middle = [Point(i, 14) for i in range(7, 20, 1)]
-    points = diagonal + top + middle
-
-    # add noise
-    points_noise = []
-    sigma = 0.1
-    for point in points:
-        x = point.x + list(np.random.normal(0, sigma, 1))[0]
-        y = point.y + list(np.random.normal(0, sigma, 1))[0]
-        points_noise.append(Point(x, y))
-
-    # inputs to the algorithm
-    point_list = PointList(points_noise)
-    delta, r, p11 = 2, 1.5, 0.9
-
-    # draw the steps of the algorithm
-    draw_labeling(point_list, delta, r, p11)
-    draw_re_labeling(point_list, delta, r, p11)
-
-    reconstructed = reconstruct(point_list, delta, r, p11)
-    canvas = Canvas('Reconstructed graph')
-    draw_points(canvas, point_list.points)
-    draw_graph(canvas, reconstructed)
