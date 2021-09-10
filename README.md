@@ -14,7 +14,7 @@ In Figure 1 is an example of metric graph reconstruction of the drawing of numbe
 
 <img src="figures/reconstruction.png" alt="Reconstruction" width="300">
 
-The input to the algorithm is the sample of points, shown in blue and red. In this example, this set of points represents the number 7 with added Gaussian noise. The reconstruction is in the form of a graph shown in black. In this example the reconstruction captures perfectly all the topological features: the relationship between the edges and vertices, the number of branching points and the degree of each node.
+The input to the algorithm is the sample of points, shown in blue and red. In this example, this set of points represents the number 7 with added Gaussian noise. The reconstruction is in the form of a graph shown in black. In this example the reconstruction captures perfectly all the topological features: the relationship between the edges and vertices, the number of branching points and the degree of each vertex.
 
 
 ## Description
