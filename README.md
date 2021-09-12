@@ -6,7 +6,9 @@
 
 ## Introduction
 
-This repository currently contains only the source code for the implementation of Aanjaneya's metric graph reconstruction algorithm for 2 dimensional Euclidean space.
+This repository contains the source code for the implementation of Aanjaneya's metric graph reconstruction algorithm in n-dimensional Euclidean space.
+
+**Update: It is also possible to visualize the point clouds and reconstruction steps of the algorithm in 3D.**
 
 ## Toy example
 

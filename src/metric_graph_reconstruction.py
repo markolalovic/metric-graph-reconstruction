@@ -12,13 +12,8 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import math
+from mpl_toolkits.mplot3d import axes3d
 import copy
-
-CANVAS_WIDTH = 10
-CANVAS_HEIGHT = 10
-MAX = 28 # max x,y coordinate
-MIN = -2 # min x,y coordinate
 
 class EmbeddedGraph:
     def __init__(self, nodes, edges):
@@ -131,26 +126,41 @@ class Point:
             The x coordinate of the point.
         y::float
             The y coordinate of the point.
+        z::float
+            The z coordinate of the point.
         label::str
             Should be: 'E' for edge point and 'V' for vertex point.
     '''
-    def __init__(self, x=0, y=0, label=''):
+    def __init__(self, x=0, y=0, z=0, label=''):
         self.x = x
         self.y = y
+        self.z = z
         if label not in ('E', 'V', ''):
             raise ValueError ("Label must be 'E' or 'V'")
         self.label = label
 
     def __str__(self):
-        return "({}, {}, {})".format(self.x, self.y, self.label)
+        return "({}, {}, {})".format(self.x, self.y, self.z, self.label)
 
     def equal(self, p):
-        return (self.x == p.x) and (self.y == p.y)
+        return (self.x == p.x) and (self.y == p.y) and (self.z == p.z)
 
 class PointCloud:
     def __init__(self, points):
         ''' PointCloud Class to hold a list of Point objects.'''
         if points == [] or isinstance(points[0], Point):
+            # shift to non-negative values for 3d effect
+            shifted = []
+            for point in points:
+                shifted.append([point.x, point.y, point.z])
+
+            shifted = np.array(shifted)
+            if np.any(shifted[:, 2]): # if 3d
+                shifted = np.array(shifted)
+                minimums = np.amin(shifted, axis=0)
+                shifted = shifted + 2 * np.abs(minimums)
+                points = [Point(point[0], point[1], point[2]) for point in shifted]
+
             self.points = points
         else:
             raise ValueError("Args must be a list of Points.")
@@ -178,6 +188,7 @@ class PointCloud:
         ''' Center of mass of the point cloud.'''
         x = np.mean(np.array( [point.x for point in self.points] ))
         y = np.mean(np.array( [point.y for point in self.points] ))
+        z = np.mean(np.array( [point.z for point in self.points] ))
 
         return Point(x, y)
 
@@ -189,7 +200,7 @@ class PointCloud:
 
     def contains(self, p):
         for pt in self.points:
-            if pt.x == p.x and pt.y == p.y:
+            if pt.x == p.x and pt.y == p.y and pt.z == p.z:
                 return True
         return False
 
@@ -212,80 +223,175 @@ class PointCloud:
 
         return np.min(np.array(distances))
 
+class Space:
+    ''' Space on which we draw the graphics. '''
+    def __init__(self, dimension):
+        if dimension in [2, 3]:
+            self.dim = dimension
+        else:
+            raise ValueError("Dimension should be an integer 2 or 3.")
 
-class Canvas:
-    """ Class Canvas on which we draw the graphics."""
-    def __init__(self, title, xlabel='X', ylabel='Y',
-                 p1=Point(MIN, MIN), p2=Point(MAX, MAX)):
+        plt.rcParams['figure.figsize'] = [20, 15]
+        plt.rcParams['text.usetex'] = True
+        plt.rcParams.update({'font.size': 18})
+        plt.rcParams['axes.facecolor'] = 'white'
+        plt.rcParams['savefig.facecolor'] = 'white'
+
         self.fig = plt.figure()
-        self.fig.set_size_inches(CANVAS_WIDTH, CANVAS_HEIGHT)
-        self.ax = self.fig.add_subplot(111, aspect='equal')
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.xticks(range(p1.x, p2.x))
-        plt.yticks(range(p1.y, p2.y))
-        self.ax.grid(True)
-        self.ax.set_xlim([p1.x, p2.x])
-        self.ax.set_ylim([p1.y, p2.y])
+        self.font_size = 28
+
+        if self.dim == 2:
+            self.ax = self.fig.add_subplot(111, aspect='equal')
+
+            # label axes
+            self.ax.set_xlabel(r'$x$', fontsize=self.font_size)
+            self.ax.set_ylabel(r'$y$', fontsize=self.font_size)
+
+            # remove ticks
+            self.ax.set_xticks([])
+            self.ax.set_yticks([])
+
+            # set axis colors
+            self.ax.spines['top'].set_color('grey')
+            self.ax.spines['right'].set_color('grey')
+        else:
+            self.ax = plt.axes(projection='3d')
+
+            # set aspect ratio
+            self.ax.set_box_aspect(aspect = (1,1,1))
+
+            # set viewing angle
+            self.ax.azim = 30
+            self.ax.dist = 10
+            self.ax.elev = 30
+
+            # remove axes ticks
+            self.ax.set_xticks([])
+            self.ax.set_yticks([])
+            self.ax.set_zticks([])
+
+            # self.ax.set_axis_off()
+
+            # set z-axis on the left
+            tmp_planes = self.ax.zaxis._PLANES
+            self.ax.zaxis._PLANES = (tmp_planes[2], tmp_planes[3],
+                                     tmp_planes[0], tmp_planes[1],
+                                     tmp_planes[4], tmp_planes[5])
+
+            # remove fill
+            self.ax.xaxis.pane.fill = False
+            self.ax.yaxis.pane.fill = False
+            self.ax.zaxis.pane.fill = False
+
+            # set axes colors
+            self.ax.xaxis.pane.set_edgecolor('gray')
+            self.ax.yaxis.pane.set_edgecolor('gray')
+            self.ax.zaxis.pane.set_edgecolor('gray')
+
+            # label axes
+            self.ax.set_xlabel(r'$x$', fontsize=self.font_size)
+            self.ax.set_ylabel(r'$y$', fontsize=self.font_size)
+            self.ax.set_zlabel(r'$z$', fontsize=self.font_size)
 
     def show(self):
-        """ Show the canvas, displaying any graphics drawn on it."""
+        """ Show the space, displaying any graphics drawn on it."""
+        if self.dim == 3:
+            # fix the aspect ratio for 3d plot
+            # source: https://stackoverflow.com/questions/8130823/set-matplotlib-3d-plot-aspect-ratio
+            extents = np.array([getattr(self.ax, 'get_{}lim'.format(dim))() for dim in 'xyz'])
+            sz = extents[:,1] - extents[:,0]
+            centers = np.mean(extents, axis=1)
+            maxsize = max(abs(sz))
+            r = maxsize/2
+            for ctr, dim in zip(centers, 'xyz'):
+                getattr(self.ax, 'set_{}lim'.format(dim))(ctr - r, ctr + r)
+
         plt.show()
         plt.clf()
         plt.cla()
         plt.close()
 
-
-def draw_point(canvas, pt, radius=0.25, color='blue', **kwargs):
-    ''' Draws a point.'''
-    point = patches.Circle((pt.x, pt.y),
-                        radius=radius,
-                        fill=True,
-                        facecolor=color,
-                        **kwargs)
-    canvas.ax.add_patch(point)
-
-def draw_points(canvas, points):
-    for point in points:
-        if point.label == 'V':
-            color = 'red'
-        elif point.label == 'E':
-            color = 'blue'
+    def draw_point(self, point, color='black', **kwargs):
+        ''' Draws a point. '''
+        if self.dim == 2:
+            self.ax.scatter(point.x, point.y, color=color, s=50)
         else:
-            color = 'green'
-        draw_point(canvas, point, color=color)
+            self.ax.scatter3D(point.x, point.y, point.z, color=color, s=50)
 
-def draw_graph(canvas, emb_G, color='black'):
-    for pt in emb_G.nodes.points:
-        draw_point(canvas, pt, color=color)
+    def draw_points(self, points):
+        if self.dim == 2:
+            for point in points:
+                if point.label == 'V':
+                    color = 'red'
+                elif point.label == 'E':
+                    color = 'blue'
+                else:
+                    color = 'black'
+                self.draw_point(point, color=color)
+        else:
+            # set size of scatter markers to give the appearance of depth
+            sizes = [point.x + point.y/2 + 2*point.z for point in points]
+            a = np.min(sizes)
+            b = np.max(sizes)
+            sizes = (sizes - a) / (b - a)
+            c = 30
+            d = 60
+            sizes = c + sizes * (d - c)
 
-    for edge in emb_G.edges:
-        draw_edge(canvas, edge.points[0], edge.points[1], color=color)
+            # to speed it up, we add all the points to the plot at the same time
+            points_np = []
+            for point in points:
+                points_np.append([point.x, point.y, point.z])
+            points_np = np.array(points_np)
 
-    plt.show()
+            # TODO: set colors based on labels
+            # for now, let all be black
+            colors = ['black']*100
+            self.ax.scatter3D(points_np[:, 0], points_np[:, 1], points_np[:, 2],
+                              s=sizes, color=colors, depthshade=True)
 
-def draw_ball(canvas, pt, radius=5, color='blue', **kwargs):
-    """ Draws a ball."""
-    # draw_point(canvas, pt, radius=0.2, color=color)
-    circle = patches.Circle((pt.x, pt.y),
-                        radius,
-                        fill=False,
-                        edgecolor=color,
-                        linestyle='dotted',
-                        linewidth='2.2',
-                        **kwargs)
-    canvas.ax.add_patch(circle)
 
-def draw_edge(canvas, p1, p2, color='blue', **kwargs):
-    """ Draws a line segment between points p1 and p2."""
-    line = patches.FancyArrow(p1.x, p1.y,
-                              p2.x - p1.x,
-                              p2.y - p1.y,
-                              color=color,
-                              linewidth='3.3',
-                              **kwargs)
-    canvas.ax.add_patch(line)
+    def draw_ball(self, center, radius=5, color='black', **kwargs):
+        """ Draws a ball around center. """
+        if self.dim == 2:
+            circle = patches.Circle((center.x, center.y),
+                                    radius,
+                                    fill=False,
+                                    edgecolor=color,
+                                    linestyle='dotted',
+                                    linewidth='2.2',
+                                    **kwargs)
+            self.ax.add_patch(circle)
+        else:
+            color='grey'
+            u = np.linspace(0, 2 * np.pi, 100)
+            v = np.linspace(0, 2* np.pi, 100)
+            x = center.x + radius * np.outer(np.cos(u), np.sin(v))
+            y = center.y + radius * np.outer(np.sin(u), np.sin(v))
+            z = center.z + radius * np.outer(np.ones(np.size(u)), np.cos(v))
+            self.ax.scatter(x, y, z, c=color, marker='o', alpha=0.01*radius)
+            self.ax.plot_surface(x, y, z, antialiased=True,
+                color=color, rstride=1, cstride=1, alpha=0.05*radius)
+            self.ax.plot_wireframe(x, y, z, color=color, alpha=0.02*radius)
+
+    def draw_graph(self, emb_G, color='black'):
+        for point in emb_G.nodes.points:
+            self.draw_point(point, color=color)
+
+        for edge in emb_G.edges:
+            self.draw_edge(edge.points[0], edge.points[1], color=color)
+
+        plt.show()
+
+    def draw_edge(self, p1, p2, color='blue', **kwargs):
+        """ Draws a line segment between points p1 and p2."""
+        line = patches.FancyArrow(p1.x, p1.y,
+                                  p2.x - p1.x,
+                                  p2.y - p1.y,
+                                  color=color,
+                                  linewidth='3.3',
+                                  **kwargs)
+        self.ax.add_patch(line)
 
 def nhbs(v, graph_G):
     ''' Returns neighbors of v in graph G. '''
@@ -350,8 +456,9 @@ def graph(emb_G):
 
 def distance(p1, p2):
     ''' Euclidean distance between p1, p2.'''
-    # TODO: generalize if p \in R^3
-    return math.hypot(p1.x - p2.x, p1.y - p2.y)
+    p1 = np.array([p1.x, p1.y, p1.z])
+    p2 = np.array([p2.x, p2.y, p2.z])
+    return np.linalg.norm(p1 - p2)
 
 def get_shell_points(points, center, r, delta):
     ''' Returns a list of points between r and r + delta around the center
@@ -401,8 +508,9 @@ def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
         else:
             center.label = 'V'
     if show:
-        canvas = Canvas('After labeling')
-        draw_points(canvas, point_cloud.points)
+        # after labeling
+        space = Space(2)
+        space.draw_points(point_cloud.points)
 
     # re-label all the points withing distance p11 from vertex points as vertices
     for center in point_cloud.vertex_points:
@@ -410,8 +518,9 @@ def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
         for ball_point in ball_points:
             ball_point.label = 'V'
     if show:
-        canvas = Canvas('After re-labeling')
-        draw_points(canvas, point_cloud.points)
+        # after relabeling
+        space = Space(2)
+        space.draw_points(point_cloud.points)
 
     # reconstruct the graph structure
     # compute the connected components of Rips-Vietoris graphs:
@@ -441,10 +550,11 @@ def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
 
     emb_G = EmbeddedGraph(nodes_emb_G, edges_emb_G)
     if show:
-        canvas = Canvas('Result')
-        draw_points(canvas, point_cloud.points)
-        draw_graph(canvas, emb_G, color='red')
-        draw_graph(canvas, emb_E, color='black')
+        # result
+        space = Space(2)
+        space.draw_points(point_cloud.points)
+        space.draw_graph(emb_G, color='red')
+        space.draw_graph(emb_E, color='black')
         print(emb_E)
 
     return emb_G
@@ -452,20 +562,21 @@ def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
 def draw_labeling(point_cloud, delta=3, r=2, p11=1.5, step=0):
     ''' Draw the labeling step of the algorithm.'''
 
-    canvas = Canvas('Labeling points as edge or vertex points')
-    draw_points(canvas, point_cloud.points)
+    # labeling points as edge or vertex points
+    space = Space(2)
+    space.draw_points(point_cloud.points)
 
     if step == 0:
         step = int(np.floor(len(point_cloud.points)/4)) - 2
     center = point_cloud.points[step]
 
-    draw_ball(canvas, center, r, 'black')
-    draw_ball(canvas, center, r + delta, color='black')
+    space.draw_ball(center, r, 'black')
+    space.draw_ball(center, r + delta, color='black')
 
     shell_points = get_shell_points(point_cloud.points, center, r, delta)
     rips_embedded = rips_vietoris_graph(delta, shell_points)
 
-    draw_graph(canvas, rips_embedded, color='red')
+    space.draw_graph(rips_embedded, color='red')
 
     plt.show()
 
@@ -480,16 +591,17 @@ def draw_re_labeling(point_cloud, delta=3, r=2, p11=1.5):
         else:
             center.label = 'V'
 
-    canvas = Canvas('Re-labeling points as vertex points')
-    draw_points(canvas, point_cloud.points)
+    # re-labeling points as vertex points
+    space = Space(2)
+    space.draw_points(point_cloud.points)
 
     i = int(np.floor(len(point_cloud.points)/4)) - 2
     center = point_cloud.points[i]
 
-    draw_ball(canvas, center, radius=p11, color='black')
+    space.draw_ball(center, radius=p11, color='black')
 
     ball_points = get_ball_points(point_cloud.edge_points, center, p11)
     for ball_point in ball_points:
-        draw_point(canvas, ball_point, color='green')
+        space.draw_point(ball_point, color='green')
 
     plt.show()

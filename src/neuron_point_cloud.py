@@ -3,15 +3,13 @@
 """ neuron_point_cloud.py - simple script to visualize the point cloud of the neuron cr22e
 from the hippocampus of a rat. Data is from NeuroMorpho.Org (Ascoli et al., 2007):
     http://neuromorpho.org/neuron_info.jsp?neuron_name=cr22e
-
-Author: Marko Lalovic <marko.lalovic@yahoo.com>
-License: MIT License
 """
 
-from mpl_toolkits import mplot3d
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
+# from mpl_toolkits.mplot3d import Axes3D
 import os
 
 plt.rcParams['figure.figsize'] = [20, 15]
@@ -31,16 +29,17 @@ with open('../data/neuron/cr22e.swc') as f:
 
 points = np.array(points)
 points = points.astype(np.float64)
-xs, ys, zs = points[:, 0], points[:, 1], points[:, 2]
+xs, ys, zs = points[:, 0], -points[:, 1], points[:, 2]
 
 fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
 ax = plt.axes(projection='3d')
 
 # set aspect ratio
 ax.set_box_aspect(aspect = (1,1,1))
 
 # and view angle
-ax.azim = -40
+ax.azim = 30
 ax.dist = 10
 ax.elev = 30
 
@@ -76,3 +75,8 @@ ax.scatter3D(xs, ys, zs, color='black', s=50, alpha=1)
 # and save it to ../figures/neuron.png
 fig.savefig('../figures/neuron.png', dpi=300)
 os.system('convert ../figures/neuron.png -trim ../figures/neuron.png')
+
+# # save a movie
+# for angle in range(0, 360, 1):
+#     ax.view_init(elev=30, azim=angle)
+#     fig.savefig('../figures/neuron_movie%d.png' % angle)
