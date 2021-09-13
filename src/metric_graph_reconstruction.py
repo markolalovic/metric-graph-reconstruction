@@ -351,7 +351,7 @@ class Space:
                               s=sizes, color=colors, depthshade=True)
 
 
-    def draw_ball(self, center, radius=5, color='black', **kwargs):
+    def draw_shell(self, center, radius=5, color='black', **kwargs):
         """ Draws a ball around center. """
         if self.dim == 2:
             circle = patches.Circle((center.x, center.y),
@@ -570,8 +570,8 @@ def draw_labeling(point_cloud, delta=3, r=2, p11=1.5, step=0):
         step = int(np.floor(len(point_cloud.points)/4)) - 2
     center = point_cloud.points[step]
 
-    space.draw_ball(center, r, 'black')
-    space.draw_ball(center, r + delta, color='black')
+    space.draw_shell(center, r, 'black')
+    space.draw_shell(center, r + delta, color='black')
 
     shell_points = get_shell_points(point_cloud.points, center, r, delta)
     rips_embedded = rips_vietoris_graph(delta, shell_points)
@@ -598,7 +598,7 @@ def draw_re_labeling(point_cloud, delta=3, r=2, p11=1.5):
     i = int(np.floor(len(point_cloud.points)/4)) - 2
     center = point_cloud.points[i]
 
-    space.draw_ball(center, radius=p11, color='black')
+    space.draw_shell(center, radius=p11, color='black')
 
     ball_points = get_ball_points(point_cloud.edge_points, center, p11)
     for ball_point in ball_points:

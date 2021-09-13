@@ -9,7 +9,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d import axes3d
-# from mpl_toolkits.mplot3d import Axes3D
 import os
 
 plt.rcParams['figure.figsize'] = [20, 15]
