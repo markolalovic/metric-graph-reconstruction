@@ -11,7 +11,7 @@ Section 3.1.
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-from random import sample
+import random
 import os
 
 plt.rcParams['figure.figsize'] = [20, 10]
@@ -81,9 +81,9 @@ class Claw:
 
             ## plot the circles in dotted grey
             g, f = 0, -1 # center of the first circle
-            theta = np.linspace(0, 2*np.pi, 100)
-            xs = g + self.tau * np.cos(theta)
-            ys = f + self.tau * np.sin(theta)
+            angle = np.linspace(0, 2*np.pi, 100)
+            xs = g + self.tau * np.cos(angle)
+            ys = f + self.tau * np.sin(angle)
             self.ax.plot(xs, ys, linestyle='--', color='grey')
 
             # 0, 1 is the center of the second circle
@@ -94,16 +94,16 @@ class Claw:
             self.ax.plot([-2, -1], [0, 0], linestyle='--', color='grey')
 
             ## plot only the arcs in dotted grey
-            theta = np.linspace(np.pi/2, np.pi/2 + np.pi/4, self.n2)
+            angle = np.linspace(np.pi/2, np.pi/2 + np.pi/4, self.n2)
             g, f = 0, -1 # center of the first circle
-            xs = g + self.tau * np.cos(theta)
-            ys = f + self.tau * np.sin(theta)
+            xs = g + self.tau * np.cos(angle)
+            ys = f + self.tau * np.sin(angle)
             self.ax.plot(xs, ys, linestyle='--', color='grey')
 
-            theta = np.linspace(3*np.pi/2, 3*np.pi/2 - np.pi/4, self.n2)
+            angle = np.linspace(3*np.pi/2, 3*np.pi/2 - np.pi/4, self.n2)
             g, f = 0, 1 # center of the second circle
-            xs = g + self.tau * np.cos(theta)
-            ys = f + self.tau * np.sin(theta)
+            xs = g + self.tau * np.cos(angle)
+            ys = f + self.tau * np.sin(angle)
             self.ax.plot(xs, ys, linestyle='--', color='grey')
 
     def boundary_points(self):
@@ -128,10 +128,10 @@ class Claw:
 
     def arc_e1_points(self):
         ''' Returns n2 points from the circle arc `e1` of length pi/4 * sqrt(2). '''
-        theta = np.linspace(np.pi/2, np.pi/2 + np.pi/4, self.n2)
+        angle = np.linspace(np.pi/2, np.pi/2 + np.pi/4, self.n2)
         g, f = 0, -1 # center of the first circle
-        xs = g + self.tau * np.cos(theta)
-        ys = f + self.tau * np.sin(theta)
+        xs = g + self.tau * np.cos(angle)
+        ys = f + self.tau * np.sin(angle)
 
         # remove the boundary points
         xs = xs[1:(self.n2 - 1)]
@@ -141,10 +141,10 @@ class Claw:
 
     def arc_e2_points(self):
         ''' Returns n2 points from the circle arc `e2` of length pi/4 * sqrt(2). '''
-        theta = np.linspace(3*np.pi/2, 3*np.pi/2 - np.pi/4, self.n2)
+        angle = np.linspace(3*np.pi/2, 3*np.pi/2 - np.pi/4, self.n2)
         g, f = 0, 1 # center of the second circle
-        xs = g + self.tau * np.cos(theta)
-        ys = f + self.tau * np.sin(theta)
+        xs = g + self.tau * np.cos(angle)
+        ys = f + self.tau * np.sin(angle)
 
         # remove the boundary points
         xs = xs[1:(self.n2 - 1)]
@@ -199,7 +199,7 @@ class Claw:
 
     def get_sample_points(self, nn):
         points = self.points()
-        return sample(points, nn)
+        return random.sample(points, nn)
 
     def plot_sample(self, sample_points, delta, savefig=False):
         self.plot()
@@ -231,9 +231,9 @@ class Claw:
                     ../figures/claw/claw_not_dense_sample.png')
 
     def is_dense(self, sample_points, delta):
-        points_EG = self.points()
-        for point_EG in points_EG:
-            if self.not_covered(point_EG, sample_points, delta):
+        pointsEG = self.points()
+        for pointEG in pointsEG:
+            if self.not_covered(pointEG, sample_points, delta):
                 return False
         return True
 
@@ -259,8 +259,80 @@ class Claw:
                           delimiter=',')
         return [tuple(pt) for pt in sample_points_np]
 
+    def sigma_tube_points(self, sigma):
+        ''' Returns boundary points of sigma-tube around G. '''
+        tube_points = []
+        n = 500
+        tau = np.sqrt(2)
+
+        a = (-2, 0)
+        a_above = (-2, sigma)
+        a_below = (-2, -sigma)
+
+        x_above = (-np.sqrt( (tau + sigma)**2 - (sigma + 1)**2 ), sigma)
+        x_below = (-np.sqrt( (tau + sigma)**2 - (sigma + 1)**2 ), -sigma)
+        x_right = (-np.sqrt( (tau - sigma)**2 - 1), 0)
+
+        t_above = (0, tau - 1)
+        t_below = (0, 1 - tau)
+
+        ## half circle at (a)
+        g, f = a
+        angle = np.linspace(np.pi/2, 3*np.pi/2, n//3)
+        xs = g + sigma * np.cos(angle)
+        ys = f + sigma * np.sin(angle)
+        tube_points += list(zip(list(xs), list(ys)))
+
+        ## sigma segments (ax)
+        xs = np.linspace(a_above[0], x_above[0], n)
+        ys = np.repeat(a_above[1], n)
+        tube_points += list(zip(list(xs), list(ys)))
+        tube_points += list(zip(list(xs), list(-ys)))
+
+        ## sigma arcs e_1, e_2
+        # above
+        g, f = 0, -1
+        angle = np.linspace(np.pi - np.arcsin((sigma + 1)/(sigma + tau)),
+                            np.pi/2,
+                            n)
+        xs = g + (tau + sigma) * np.cos(angle)
+        ys = f + (tau + sigma) * np.sin(angle)
+        tube_points += list(zip(list(xs), list(ys)))
+        tube_points += list(zip(list(xs), list(-ys)))
+
+        # below
+        angle = np.linspace(np.pi - np.arcsin(1/(tau - sigma)),
+                            np.pi/2,
+                            n)
+        xs = g + (tau - sigma) * np.cos(angle)
+        ys = f + (tau - sigma) * np.sin(angle)
+        tube_points += list(zip(list(xs), list(ys)))
+        tube_points += list(zip(list(xs), list(-ys)))
+
+        ## half circle at (t_above) and (t_below)
+        g, f = t_above
+        angle = np.linspace(-np.pi/2, np.pi/2, n//3)
+        xs = g + sigma * np.cos(angle)
+        ys = f + sigma * np.sin(angle)
+        tube_points += list(zip(list(xs), list(ys)))
+        tube_points += list(zip(list(xs), list(-ys)))
+
+        return tube_points
+
+    def plot_sigma_tube(self, sigma, savefig=False):
+        self.plot()
+
+        tube_points = self.sigma_tube_points(sigma)
+        tube_points_np = np.array(tube_points)
+        self.ax.scatter(tube_points_np[:, 0], tube_points_np[:, 1],
+                        color='pink', s=1)
+        if savefig:
+            self.fig.savefig('../figures/claw/sigma_tube.png', dpi=300)
+            os.system('convert ../figures/claw/sigma_tube.png -trim \
+                ../figures/claw/sigma_tube.png')
+
 if __name__ == "__main__":
-    np.random.seed(2)
+    random.seed(6)
 
     savefig = True # set false for faster plotting
 
@@ -284,11 +356,16 @@ if __name__ == "__main__":
     plt.show()
 
     # delta/2-dense sample in G
-    sample_points = claw.get_sample_points(30)
+    # save and load the sample
+    # claw.save_sample(sample_points, 'claw_dense_sample_30_points')
+    # claw.load_sample('claw_dense_sample_30_points')
+    sample_points = claw.load_sample('claw_dense_sample_30_points')
+
     print(claw.is_dense(sample_points, delta))
     claw.plot_sample(sample_points, delta, savefig=savefig)
     plt.show()
 
-    # save and load the sample
-    claw.save_sample(sample_points, 'claw_dense_sample_30_points')
-    # claw.load_sample('claw_dense_sample_30_points')
+    ## Noise
+    # boundary of sigma-tube
+    claw.plot_sigma_tube(0.1, savefig=savefig)
+    plt.show()
