@@ -18,13 +18,14 @@ import copy
 class EmbeddedGraph:
     def __init__(self, nodes, edges):
         ''' Graph with points embedded in the plane.'''
-        self.nodes = PointCloud(nodes)
-        self.edges = [PointCloud(edge) for edge in edges]
+        self.nodes = nodes
+        self.edges = edges
 
     def __str__(self):
-        points = [str(point) for point in self.nodes.points]
-        edges = [str(edge) for edge in self.edges]
-        components = [str(cmpt_emb_G) for cmpt_emb_G in self.components.values()]
+        points = [str(point) for point in self.nodes]
+        edges = [[str(edge[0]), str(edge[1])] for edge in self.edges]
+        components = [[str(point) for point in cmpt_emb_G]
+            for cmpt_emb_G in self.components.values()]
 
         return "nodes: {}\nedges: {}\ncomponents: {}".format(
             str(points), str(edges),  str(components))
@@ -32,7 +33,7 @@ class EmbeddedGraph:
     @property
     def n(self):
         ''' Number of nodes in EmbeddedGraph.'''
-        return len(self.nodes.points)
+        return len(self.nodes)
 
     @property
     def m(self):
@@ -53,10 +54,10 @@ class EmbeddedGraph:
         cmpts_emb_G = {}
         point_of = {}
         for i in range(self.n):
-            point_of[i] = self.nodes.points[i]
+            point_of[i] = self.nodes[i]
 
         for i, cmpt_G in cmpts_G.items():
-            cmpts_emb_G[i] = PointCloud( [point_of[j] for j in cmpt_G] )
+            cmpts_emb_G[i] = [point_of[j] for j in cmpt_G]
 
         return cmpts_emb_G
 
@@ -113,8 +114,9 @@ class Graph:
         graph_G.add_edges_from(self.edges)
 
         pos = nx.spring_layout(graph_G)
-        nx.draw(graph_G, pos, font_size=10,
-                node_color='red', with_labels=True)
+        nx.draw(graph_G, pos, font_size=50,
+                node_color='black', with_labels=False)
+
         plt.show()
 
 
@@ -243,9 +245,9 @@ class Space:
         if self.dim == 2:
             self.ax = self.fig.add_subplot(111, aspect='equal')
 
-            # label axes
-            self.ax.set_xlabel(r'$x$', fontsize=self.font_size)
-            self.ax.set_ylabel(r'$y$', fontsize=self.font_size)
+            # # label axes
+            # self.ax.set_xlabel(r'$x$', fontsize=self.font_size)
+            # self.ax.set_ylabel(r'$y$', fontsize=self.font_size)
 
             # remove ticks
             self.ax.set_xticks([])
@@ -375,11 +377,11 @@ class Space:
             self.ax.plot_wireframe(x, y, z, color=color, alpha=0.02*radius)
 
     def draw_graph(self, emb_G, color='black'):
-        for point in emb_G.nodes.points:
+        for point in emb_G.nodes:
             self.draw_point(point, color=color)
 
         for edge in emb_G.edges:
-            self.draw_edge(edge.points[0], edge.points[1], color=color)
+            self.draw_edge(edge[0], edge[1], color=color)
 
         plt.show()
 
@@ -431,23 +433,23 @@ def graph(emb_G):
 
     point_of = {}
     for i in range(emb_G.n):
-        point_of[i] = emb_G.nodes.points[i]
+        point_of[i] = emb_G.nodes[i]
 
     number_of = {}
     for i in range(emb_G.n):
-        number_of[emb_G.nodes.points[i]] = i
+        number_of[emb_G.nodes[i]] = i
 
     nodes = list(point_of.keys())
     edges = []
     for i in range(emb_G.n):
         for j in range(i + 1, emb_G.n):
             # test if there is an edge between Points v1 and v2
-            v1 = emb_G.nodes.points[i]
-            v2 = emb_G.nodes.points[j]
+            v1 = emb_G.nodes[i]
+            v2 = emb_G.nodes[j]
 
             for edge in emb_G.edges:
-                u1 = edge.points[0]
-                u2 = edge.points[1]
+                u1 = edge[0]
+                u2 = edge[1]
                 if v1.equal(u1) and v2.equal(u2) or \
                    v1.equal(u2) and v2.equal(u1):
                     edges.append( (number_of[v1], number_of[v2]) )
@@ -496,9 +498,10 @@ def rips_vietoris_graph(delta, points):
 
     return EmbeddedGraph(nodes, edges)
 
-def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
+def reconstruct(point_cloud, delta=3, r=2, p11=1.5):
     ''' Implementation of Aanjaneya's metric graph reconstruction algorithm.'''
-    ## label the points as edge or vertex points
+    ## Labeling
+    # label the points as edge or vertex points
     for center in point_cloud.points:
         shell_points = get_shell_points(point_cloud.points, center, r, delta)
         rips_embedded = rips_vietoris_graph(delta, shell_points)
@@ -507,38 +510,40 @@ def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
             center.label = 'E'
         else:
             center.label = 'V'
-    if show:
-        # after labeling
-        space = Space(2)
-        space.draw_points(point_cloud.points)
 
-    # re-label all the points withing distance p11 from vertex points as vertices
+    ## Expansion
+    # re-label all the points withing distance p11 from preliminary vertex
+    # points as vertices
     for center in point_cloud.vertex_points:
         ball_points = get_ball_points(point_cloud.edge_points, center, p11)
         for ball_point in ball_points:
             ball_point.label = 'V'
-    if show:
-        # after relabeling
-        space = Space(2)
-        space.draw_points(point_cloud.points)
 
-    # reconstruct the graph structure
+    # Reconstructing the graph structure
     # compute the connected components of Rips-Vietoris graphs:
-    # R_delta(vertex_points), R_delta(edge_points)
+    # Rips_delta(vertex_points), Rips_delta(edge_points)
     rips_V = rips_vietoris_graph(delta, point_cloud.vertex_points)
     rips_E = rips_vietoris_graph(delta, point_cloud.edge_points)
     cmpts_V = rips_V.components
     cmpts_E = rips_E.components
 
-    nodes_emb_E = []
-    for i, cmpt_E in cmpts_E.items():
-        nodes_emb_E.append(cmpt_E.center)
-    emb_E = EmbeddedGraph(nodes_emb_E, [])
+    # tranform lists of points in components to point clouds
+    for i, cmpt_points in cmpts_V.items():
+        cmpts_V[i] = PointCloud(cmpt_points)
 
+    for j, cmpt_points in cmpts_E.items():
+        cmpts_E[j] = PointCloud(cmpt_points)
+
+    # connected components of Rips_delta(vertex_points) are vertices of
+    # reconstructed graph hatG represented by centers of mass of point clouds
     nodes_emb_G = []
     for i, cmpt_V in cmpts_V.items():
         nodes_emb_G.append(cmpt_V.center)
 
+    # there is an edge between vertices of hatG if their corresponding
+    # connected components in Rips_delta(vertex_points) contain points
+    # at distance less than delta from the same component of
+    # Rips_delta(edge_points)
     n = len(nodes_emb_G)
     edges_emb_G = []
     for i in range(n):
@@ -549,13 +554,6 @@ def reconstruct(point_cloud, delta=3, r=2, p11=1.5, show=False):
                     edges_emb_G.append([nodes_emb_G[i], nodes_emb_G[j]])
 
     emb_G = EmbeddedGraph(nodes_emb_G, edges_emb_G)
-    if show:
-        # result
-        space = Space(2)
-        space.draw_points(point_cloud.points)
-        space.draw_graph(emb_G, color='red')
-        space.draw_graph(emb_E, color='black')
-        print(emb_E)
 
     return emb_G
 
