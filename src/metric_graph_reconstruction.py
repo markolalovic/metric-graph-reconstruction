@@ -17,7 +17,7 @@ import copy
 
 class EmbeddedGraph:
     def __init__(self, nodes, edges):
-        ''' Graph with points embedded in the plane.'''
+        ''' Graph with points embedded in n-dimensional space.'''
         self.nodes = nodes
         self.edges = edges
 
@@ -47,7 +47,7 @@ class EmbeddedGraph:
 
     @property
     def components(self):
-        ''' Computes connected components of EmbeddedGraph'''
+        ''' Returns connected components of EmbeddedGraph'''
         graph_G = graph(self)
         cmpts_G = graph_G.components
 
@@ -107,8 +107,8 @@ class Graph:
     def __str__(self):
         return "nodes: {}\nedges: {}".format(str(self.nodes), str(self.edges))
 
-    def draw(self):
-        ''' Draws the graph. '''
+    def plot(self):
+        ''' Plots the graph structure. '''
         graph_G = nx.Graph()
         graph_G.add_nodes_from(self.nodes)
         graph_G.add_edges_from(self.edges)
@@ -226,7 +226,7 @@ class PointCloud:
         return np.min(np.array(distances))
 
 class Space:
-    ''' Space on which we draw the graphics. '''
+    ''' Space on which we plot the graphics. '''
     def __init__(self, dimension):
         if dimension in [2, 3]:
             self.dim = dimension
@@ -296,7 +296,7 @@ class Space:
             self.ax.set_zlabel(r'$z$', fontsize=self.font_size)
 
     def show(self):
-        """ Show the space, displaying any graphics drawn on it."""
+        """ Show the space, displaying any graphics on it."""
         if self.dim == 3:
             # fix the aspect ratio for 3d plot
             # source: https://stackoverflow.com/questions/8130823/set-matplotlib-3d-plot-aspect-ratio
@@ -313,14 +313,14 @@ class Space:
         plt.cla()
         plt.close()
 
-    def draw_point(self, point, color='black', **kwargs):
-        ''' Draws a point. '''
+    def plot_point(self, point, color='black', **kwargs):
+        ''' Plots a point. '''
         if self.dim == 2:
             self.ax.scatter(point.x, point.y, color=color, s=50)
         else:
             self.ax.scatter3D(point.x, point.y, point.z, color=color, s=50)
 
-    def draw_points(self, points):
+    def plot_points(self, points):
         if self.dim == 2:
             for point in points:
                 if point.label == 'V':
@@ -329,7 +329,7 @@ class Space:
                     color = 'blue'
                 else:
                     color = 'black'
-                self.draw_point(point, color=color)
+                self.plot_point(point, color=color)
         else:
             # set size of scatter markers to give the appearance of depth
             sizes = [point.x + point.y/2 + 2*point.z for point in points]
@@ -353,15 +353,26 @@ class Space:
                               s=sizes, color=colors, depthshade=True)
 
 
-    def draw_shell(self, center, radius=5, color='black', **kwargs):
-        """ Draws a ball around center. """
+    def plot_shell(self, center, radius, delta, points, color='black', **kwargs):
+        ''' Plots B(center, radius) and B(center, radius + delta). '''
+        if self.dim == 2:
+            self.plot_ball(center, radius + delta, color='grey', alpha=0.1)
+            self.plot_ball(center, radius + delta, fill=False, alpha=1)
+            self.plot_ball(center, radius, color='white', alpha=1)
+        else:
+            self.plot_ball(center, radius + delta)
+            self.plot_ball(center, radius + delta)
+
+    def plot_ball(self, center, radius, color='black', **kwargs):
+        """ Plots a ball B(center, radius). """
         if self.dim == 2:
             circle = patches.Circle((center.x, center.y),
                                     radius,
-                                    fill=False,
-                                    edgecolor=color,
-                                    linestyle='dotted',
+                                    facecolor=color,
+                                    edgecolor='k',
+                                    linestyle='--',
                                     linewidth='2.2',
+                                    zorder=0,
                                     **kwargs)
             self.ax.add_patch(circle)
         else:
@@ -376,24 +387,18 @@ class Space:
                 color=color, rstride=1, cstride=1, alpha=0.05*radius)
             self.ax.plot_wireframe(x, y, z, color=color, alpha=0.02*radius)
 
-    def draw_graph(self, emb_G, color='black'):
+    def plot_embedded_graph(self, emb_G, color='black'):
         for point in emb_G.nodes:
-            self.draw_point(point, color=color)
+            self.plot_point(point, color=color)
 
         for edge in emb_G.edges:
-            self.draw_edge(edge[0], edge[1], color=color)
+            self.plot_edge(edge[0], edge[1], color=color)
 
-        plt.show()
-
-    def draw_edge(self, p1, p2, color='blue', **kwargs):
-        """ Draws a line segment between points p1 and p2."""
-        line = patches.FancyArrow(p1.x, p1.y,
-                                  p2.x - p1.x,
-                                  p2.y - p1.y,
-                                  color=color,
-                                  linewidth='3.3',
-                                  **kwargs)
-        self.ax.add_patch(line)
+    def plot_edge(self, p1, p2, color='blue', **kwargs):
+        ''' Plots line segment between points p1 and p2. '''
+        if self.dim == 2:
+            self.ax.plot([p1.x, p2.x], [p1.y, p2.y],
+                color=color, lw=3.3, **kwargs)
 
 def nhbs(v, graph_G):
     ''' Returns neighbors of v in graph G. '''
@@ -407,7 +412,7 @@ def nhbs(v, graph_G):
     return neighbors
 
 def component(v, nodes, edges):
-    ''' Wrapper of comp.'''
+    ''' Wrapper of comp. '''
     G = Graph(nodes, edges)
     return comp(v, G, [v]) # T=[v] at the start
 
@@ -557,28 +562,28 @@ def reconstruct(point_cloud, delta=3, r=2, p11=1.5):
 
     return emb_G
 
-def draw_labeling(point_cloud, delta=3, r=2, p11=1.5, step=0):
-    ''' Draw the labeling step of the algorithm.'''
+def plot_labeling(point_cloud, delta=3, r=2, p11=1.5, step=0):
+    ''' Plot the labeling step of the algorithm.'''
 
     # labeling points as edge or vertex points
     space = Space(2)
-    space.draw_points(point_cloud.points)
+    space.plot_points(point_cloud.points)
 
     if step == 0:
         step = int(np.floor(len(point_cloud.points)/4)) - 2
     center = point_cloud.points[step]
 
-    space.draw_shell(center, r, 'black')
-    space.draw_shell(center, r + delta, color='black')
+    space.plot_shell(center, r, 'black')
+    space.plot_shell(center, r + delta, color='black')
 
     shell_points = get_shell_points(point_cloud.points, center, r, delta)
     rips_embedded = rips_vietoris_graph(delta, shell_points)
 
-    space.draw_graph(rips_embedded, color='red')
+    space.plot_graph(rips_embedded, color='red')
 
-    plt.show()
+    space.show()
 
-def draw_re_labeling(point_cloud, delta=3, r=2, p11=1.5):
+def plot_re_labeling(point_cloud, delta=3, r=2, p11=1.5):
     # label points as edge or vertex
     for center in point_cloud.points:
         shell_points = get_shell_points(point_cloud.points, center, r, delta)
@@ -591,15 +596,15 @@ def draw_re_labeling(point_cloud, delta=3, r=2, p11=1.5):
 
     # re-labeling points as vertex points
     space = Space(2)
-    space.draw_points(point_cloud.points)
+    space.plot_points(point_cloud.points)
 
     i = int(np.floor(len(point_cloud.points)/4)) - 2
     center = point_cloud.points[i]
 
-    space.draw_shell(center, radius=p11, color='black')
+    space.plot_shell(center, radius=p11, color='black')
 
     ball_points = get_ball_points(point_cloud.edge_points, center, p11)
     for ball_point in ball_points:
-        space.draw_point(ball_point, color='green')
+        space.plot_point(ball_point, color='green')
 
-    plt.show()
+    space.show()

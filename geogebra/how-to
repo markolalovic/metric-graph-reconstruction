@@ -1,0 +1,52 @@
+Input
+
+- line segment between points A and B:
+segment = Curve[(1 - t) x(A) + t x(B), (1 - t) y(A) + t y(B), t, 0, 1]
+
+ear = Curve[(1 - t) x(B) + t x(C), (1 - t) y(B) + t y(C), t, 0, 1]
+
+- point on the curve
+segment = Curve[(1 - t) x(A1) + t x(A2), (1 - t) y(A1) + t y(A2), t, 0, 1]
+t = 0
+X1 = ((1 - t) x(A1) + t x(A2), (1 - t) y(A1) + t y(A2))
+X0 = ((1 - t) x(B) + t x(C), (1 - t) y(B) + t y(C))
+
+- cubic Bezier curve on control points A, B, C, D:
+curve = Curve[(1 - t)^3 x(A) + 3 (1 - t)^2 t x(B) + 3 (1 - t) t^2 x(C) + t^3 x(D), 
+      (1 - t)^3 y(A) + 3 (1 - t)^2 t y(B) + 3 (1 - t) t^2 y(C) + t^3 y(D),
+      t, 0, 1]
+      
+headUp = Curve[
+      (1 - t)^3 x(A_1) + 3 (1 - t)^2 t x(E_2) + 3 (1 - t) t^2 x(F_2) + t^3 x(B_1), 
+      (1 - t)^3 y(A_1) + 3 (1 - t)^2 t y(E_2) + 3 (1 - t) t^2 y(F_2) + t^3 y(B_1),
+      t, 0, 1]
+      
+- 4th degree Bezier curve on control points A, B, C, D, E:
+Curve[t^4 x(A) + 4t^3 (1 - t) x(B) + 6t^2 (1 - t)^2 x(C) + 4t (1 - t)^3 x(D) + (1 - t)^4 x(E),
+      t^4 y(A) + 4t^3 (1 - t) y(B) + 6t^2 (1 - t)^2 y(C) + 4t (1 - t)^3 y(D) + (1 - t)^4 y(E),
+      t, 0, 1]
+
+
+Curve[t^4 x(E) + 4t^3 (1 - t) x(S) + 6t^2 (1 - t)^2 x(I1) + 4t (1 - t)^3 x(T) + (1 - t)^4 x(F),
+      t^4 y(E) + 4t^3 (1 - t) y(S) + 6t^2 (1 - t)^2 y(I1) + 4t (1 - t)^3 y(T) + (1 - t)^4 y(F),
+      t, 0, 1]
+      
+      
+Curve[t^4 x(E) + 4t^3 (1 - t) x(U) + 6t^2 (1 - t)^2 x(J1) + 4t (1 - t)^3 x(V) + (1 - t)^4 x(G),
+      t^4 y(E) + 4t^3 (1 - t) y(U) + 6t^2 (1 - t)^2 y(J1) + 4t (1 - t)^3 y(V) + (1 - t)^4 y(G),
+      t, 0, 1]
+      
+      
+X6 = (t^4 x(E) + 4t^3 (1 - t) x(S) + 6t^2 (1 - t)^2 x(I1) + 4t (1 - t)^3 x(T) + (1 - t)^4 x(F),
+      t^4 y(E) + 4t^3 (1 - t) y(S) + 6t^2 (1 - t)^2 y(I1) + 4t (1 - t)^3 y(T) + (1 - t)^4 y(F))
+
+X7 = (t^4 x(E) + 4t^3 (1 - t) x(U) + 6t^2 (1 - t)^2 x(J1) + 4t (1 - t)^3 x(V) + (1 - t)^4 x(G),
+      t^4 y(E) + 4t^3 (1 - t) y(U) + 6t^2 (1 - t)^2 y(J1) + 4t (1 - t)^3 y(V) + (1 - t)^4 y(G))
+      
+Curve[t^4 x(H) + 4t^3 (1 - t) x(A1) + 6t^2 (1 - t)^2 x(K1) + 4t (1 - t)^3 x(B1) + (1 - t)^4 x(I),
+      t^4 y(H) + 4t^3 (1 - t) y(A1) + 6t^2 (1 - t)^2 y(K1) + 4t (1 - t)^3 y(B1) + (1 - t)^4 y(I),
+      t, 0, 1]
+
+X10 = (t^4 x(H) + 4t^3 (1 - t) x(A1) + 6t^2 (1 - t)^2 x(K1) + 4t (1 - t)^3 x(B1) + (1 - t)^4 x(I),
+      t^4 y(H) + 4t^3 (1 - t) y(A1) + 6t^2 (1 - t)^2 y(K1) + 4t (1 - t)^3 y(B1) + (1 - t)^4 y(I))
+

@@ -212,13 +212,8 @@ class Claw:
 
         if delta > 0:
             for sample_point in sample_points:
-                circle = patches.Circle((sample_point[0], sample_point[1]),
-                                        delta/2,
-                                        facecolor=(0.5, 0.5, 0.5),
-                                        edgecolor=(0.0, 0.0, 0.0),
-                                        linestyle='--',
-                                        alpha=0.1)
-                self.ax.add_patch(circle)
+                self.plot_ball(sample_point, delta/2, color='grey', alpha=0.1)
+                self.plot_ball(sample_point, delta/2, fill=False, alpha=0.1)
 
         if savefig:
             if dense_sample:
@@ -229,6 +224,17 @@ class Claw:
                 self.fig.savefig('../figures/claw/claw_not_dense_sample.png', dpi=300)
                 os.system('convert ../figures/claw/claw_not_dense_sample.png -trim \
                     ../figures/claw/claw_not_dense_sample.png')
+
+    def plot_ball(self, center, radius, color='black', **kwargs):
+        circle = patches.Circle((center[0], center[1]),
+                                radius,
+                                facecolor=color,
+                                edgecolor='k',
+                                linestyle='--',
+                                linewidth='2.2',
+                                zorder=0,
+                                **kwargs)
+        self.ax.add_patch(circle)
 
     def is_dense(self, sample_points, delta):
         pointsEG = self.points()
