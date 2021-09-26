@@ -155,7 +155,7 @@ def geogebra(part, points):
     ''' Some help for drawing Bezier curves in GeoGebra, e.g.
             geogebra('quartic', ['A', 'B', 'C', 'D'])
     '''
-    if len(points) == 4:
+    if len(points) == 4: # quartic
         out = part + ' = Curve['
         out += '(1 - t)^3 x(' + points[0] + ') + 3 (1 - t)^2 t x(' + points[1] \
             + ') + 3 (1 - t) t^2 x(' + points[2] + ') + t^3 x(' + points[3] + '),'
