@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <!-- TODO: title -->
+  <!-- Transit Map Reconstruction -->
+  <title>Transit Map Reconstruction</title>
+</head>
+<body>
+  <div class="outer">
+    <div id="chart-window"></div>
+  </div>
+
+  <!-- data -->
+  <script type="text/javascript" src="./data/gpsData.json"></script>
+  <script type="text/javascript" src="./data/gpsDataMapped.json"></script>
+  <script type="text/javascript" src="./data/roadMapData.json"></script>
+  <script type="text/javascript" src="./data/transitMapData.json"></script>
+
+  <!-- scripts -->
+  <script type='text/javascript' src='./functions.js'></script>
+  <script type='text/javascript' src='./roadMap.js'></script>
+  <script type='text/javascript' src='./transitMap.js'></script>
+  <script type='text/javascript' src='./colorLegend.js'></script>
+  <script type='text/javascript' src='./controlButtons.js'></script>
+  <script type='text/javascript' src='./analogClock.js'></script>
+  <script type='text/javascript' src='./layoutRect.js'></script>
+  <script type='text/javascript' src='./layoutPoly.js'></script>
+  <script type='text/javascript' src='./bboxDraw.js'></script>
+  <script type='text/javascript' src='./main.js'></script>
+</body>
+</html>
