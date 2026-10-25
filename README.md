@@ -2,7 +2,22 @@
 
 **Reconstructing the topology of a metric graph for representing intersecting or branching filamentary paths embedded in 2 or higher dimensional spaces**
 
-<img src="figures/earthquake.png" alt="Reconstruction from earthquake data" width="630">
+<img src="figures/earthquake.png" alt="Reconstruction from earthquake data" width="430">
+
+## Demo
+
+See the interactive demo: [https://transit-map-reconstruction.pages.dev/](https://transit-map-reconstruction.pages.dev/)
+
+This visualization combines metric graph reconstruction with automatic transit-map drawing. 
+
+I first reconstructed the road network using implementation of the algorithm of [Aanjaneya et al.](https://geometry.stanford.edu/lgl_2024/papers/accggm-mgrnd-11/accggm-mgrnd-11.pdf). I then generated a schematic drawing of the reconstructed graph using [TransitmapSolver.jl](https://github.com/dirkschumacher/TransitmapSolver.jl), a Julia package based on the mixed-integer programming approach of [Nöllenburg and Wolff](https://doi.org/10.1109/TVCG.2010.81).
+
+The visualization follows ten Dublin buses through an hour of recorded journeys, showing their positions on both the geographic road network and the automatically generated transit map. Matching colors connect the routes across the views.
+
+The [GPS observations](https://gist.github.com/markolalovic/f85f3dfeda5930b9da0cc405f3ffc9ea) cover 7 January 2013, 12:00–13:00, and were extracted from Dublin City Council's Insight Project dataset. 
+
+The underlying road network map uses [OpenStreetMap data](https://gist.github.com/markolalovic/532feee897726ccafbac336631d6360f) processed from Geofabrik shapefiles.
+
 
 ## Introduction
 
