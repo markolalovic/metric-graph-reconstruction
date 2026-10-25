@@ -10,11 +10,11 @@ See the interactive demo: [https://transit-map-reconstruction.pages.dev/](https:
 
 This visualization combines metric graph reconstruction with automatic transit-map drawing. 
 
-I first reconstructed the road network using implementation of the algorithm of [Aanjaneya et al.](https://geometry.stanford.edu/lgl_2024/papers/accggm-mgrnd-11/accggm-mgrnd-11.pdf). I then generated a schematic drawing of the reconstructed graph using [TransitmapSolver.jl](https://github.com/dirkschumacher/TransitmapSolver.jl), a Julia package based on the mixed-integer programming approach of [Nöllenburg and Wolff](https://doi.org/10.1109/TVCG.2010.81).
+I first reconstructed the road network using implementation of the algorithm of [Aanjaneya et al.](https://www.mrzv.org/publications/metric-graphs/socg11/). I then generated a schematic drawing of the reconstructed graph using [TransitmapSolver.jl](https://github.com/dirkschumacher/TransitmapSolver.jl), a Julia package based on the mixed-integer programming approach of [Nöllenburg and Wolff](https://www1.pub.informatik.uni-wuerzburg.de/pub/wolff/pub/nw-mipdh-06.pdf).
 
 The visualization follows ten Dublin buses through an hour of recorded journeys, showing their positions on both the geographic road network and the automatically generated transit map. Matching colors connect the routes across the views.
 
-The [GPS observations](https://gist.github.com/markolalovic/f85f3dfeda5930b9da0cc405f3ffc9ea) cover 7 January 2013, 12:00–13:00, and were extracted from Dublin City Council's Insight Project dataset. 
+The [GPS observations](https://gist.github.com/markolalovic/f85f3dfeda5930b9da0cc405f3ffc9ea) cover 7 January 2013, from 12:00 to 13:00, and were extracted from Dublin City Council's Insight Project dataset.
 
 The underlying road network map uses [OpenStreetMap data](https://gist.github.com/markolalovic/532feee897726ccafbac336631d6360f) processed from Geofabrik shapefiles.
 
@@ -60,4 +60,4 @@ See [1] for the explanation of how dense a sample has to be in order to guarante
 [https://jmlr.csail.mit.edu/papers/volume15/lecci14a/lecci14a.pdf](https://jmlr.csail.mit.edu/papers/volume15/lecci14a/lecci14a.pdf)
 
 [2]: M. Aanjaneya, F. Chazal, D. Chen, M. Glisse, L.J. Guibas, and D. Morozov, "Metric Graph Reconstruction from Noisy Data", Proceedings of the twenty-seventh annual symposium on Computational geometry, 2011.
-[http://physbam.stanford.edu/~aanjneya/mridul_files/papers/metric.pdf](http://physbam.stanford.edu/~aanjneya/mridul_files/papers/metric.pdf)
+[https://www.mrzv.org/publications/metric-graphs/socg11/](https://www.mrzv.org/publications/metric-graphs/socg11/)
